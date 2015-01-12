@@ -19,6 +19,7 @@ for (i in files) {
   names(data[[i]]) = c("read.name", "barcode7", "blah", "sample.barcode", "read")
 }
 names(data) = c("112A", "112B", "D19A", "D19B")
+names(data)
 # 
 # SANITY CHECK
 # str(data)
@@ -151,7 +152,7 @@ names(data.unq.split[1])
 weblogoGraph = function(i) {
   require(RWebLogo)
   weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_info.pdf"),
+          file.out = paste(i, "_up_info.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -159,7 +160,7 @@ weblogoGraph = function(i) {
           color.scheme = "classic",
           annotate = 1:9)
   weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_prob.pdf"),
+          file.out = paste(i, "_up_prob.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -168,7 +169,7 @@ weblogoGraph = function(i) {
           color.scheme = "classic",
           annotate = 1:9)
   weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_info.pdf"),
+          file.out = paste(i, "_down_info.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -176,7 +177,7 @@ weblogoGraph = function(i) {
           color.scheme = "classic",
           annotate = 1:12)
   weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_prob.pdf"),
+          file.out = paste(i, "_down_prob.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
