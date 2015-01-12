@@ -19,7 +19,6 @@ for (i in files) {
   names(data[[i]]) = c("read.name", "barcode7", "blah", "sample.barcode", "read")
 }
 names(data) = c("112A", "112B", "D19A", "D19B")
-names(data)
 # 
 # SANITY CHECK
 # str(data)
@@ -128,29 +127,11 @@ data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 2)
 
 # RWebLogo is the most straightforward way to acheive this, though you don't get as much background
 # info
-library(RWebLogo)
-aln <- c('CCAACCCAA', 'CCAACCCTA', 'AAAGCCTGA', 'TGAACCGGA')
-aln
-weblogo(seqs = aln,
-        file.out = "play.pdf",
-        errorbars = FALSE,
-        open = FALSE,
-        verbose = FALSE,
-        sequence.type = "dna",
-        color.scheme = "classic",
-        annotate = 1:nchar(aln[1]))
-weblogo(seqs = aln,
-        units = "probability",
-        errorbars = FALSE,
-        open = FALSE,
-        verbose = FALSE,
-        sequence.type = "dna",
-        color.scheme = "classic")
-
-names(data.unq.split[1])
-
+# library(RWebLogo)
+# Graphing function
 weblogoGraph = function(i) {
   require(RWebLogo)
+  # THE UP.FLANK
   weblogo(seqs = data.unq.split[[i]]$up.flank,
           file.out = paste(i, "_up_info.pdf", sep = ""),
           errorbars = FALSE,
@@ -158,7 +139,7 @@ weblogoGraph = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = 1:9)
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
   weblogo(seqs = data.unq.split[[i]]$up.flank,
           file.out = paste(i, "_up_prob.pdf", sep = ""),
           units = "probability",
@@ -167,7 +148,8 @@ weblogoGraph = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = 1:9)
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
+  # THE DOWN.FLANK
   weblogo(seqs = data.unq.split[[i]]$down.flank,
           file.out = paste(i, "_down_info.pdf", sep = ""),
           errorbars = FALSE,
@@ -175,7 +157,7 @@ weblogoGraph = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = 1:12)
+          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
   weblogo(seqs = data.unq.split[[i]]$down.flank,
           file.out = paste(i, "_down_prob.pdf", sep = ""),
           units = "probability",
@@ -184,46 +166,41 @@ weblogoGraph = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = 1:12)
+          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
 }
-lapply(names(lapply(data.unq.split, names)), weblogoGraph)
-
-names(data.unq.split[1])
-
-x <- list(a=11,b=12,c=13) # Changed to list to address concerns in commments
-x
-
-lapply(seq_along(x), function(y, n, i) { paste(n[[i]], y[[i]]) }, y=x, n=names(x))
-
-mylist <- list("a"=2,"b"=4,"c"=6)
-mylist[["a"]]
-> sapply(mylist,function(x){
-  >  #get name of list elements ("a", "b", "c")
-    >  #then do other stuff
-    > })
-
-You can pass this result to "[[":
-  > names(sapply(mylist, names))
-[1] "a" "b" "c"
-
-lapply(names(lapply(data.unq.split, names)), function(x) {print(names(data.unq.split[[x]]))})
-
-sapply( names(sapply(data.unq.split, names)) , )
-a  b  c
-[1,] 1  9 25
-[2,] 4 16 36
-
-mylist = list("a" = data.frame(x = 1:3, y = 4:6),
-              "b" = data.frame(x = 1:3, y = 1:3),
-              "c" = data.frame(x = 1:3, y = 7:9))
-
-lapply(names(lapply(mylist, names)), plotter)
-plotter = function(i) {
-  png(file = paste(i, ".png"))
-  plot(mylist[[i]]$x, mylist[[i]]$y)
-  dev.off()
-}
-
+# 
+# FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
+mclapply(names(lapply(data.unq.split, names)), weblogoGraph, mc.cores = 2)
+# 
 # 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
-
-
+# UP FLANK
+upFlankWinners = function(x) {
+  require(dplyr)
+  x %>%
+    group_by(up.flank) %>%
+    summarise(up.flank.freq = length(read.name)) %>%
+    arrange(desc(up.flank.freq))
+}
+# 
+up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 2)
+# 
+csvWritter = function(i, y, nom) {
+  # WRITES THE FIRST 100 LINES, WHICH CORRESPONDS TO THE TOP 100 OF THE SORTED DATAFRAME
+  write.csv(y[[i]][1:100,],
+            file = paste(i, nom, "top100.csv", sep = "_"),
+            quote = FALSE,
+            row.names = FALSE)
+}
+mclapply(names(lapply(up.freq.summ, names)), csvWritter, y = up.freq.summ, nom = "upflank", mc.cores = 2)
+# 
+# DOWN FLANK
+downFlankWinners = function(x) {
+  require(dplyr)
+  x %>%
+    group_by(down.flank) %>%
+    summarise(down.flank.freq = length(read.name)) %>%
+    arrange(desc(down.flank.freq))
+}
+# 
+down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 2)
+mclapply(names(lapply(down.freq.summ, names)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 2)
