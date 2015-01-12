@@ -18,6 +18,7 @@ for (i in files) {
                           showProgress = FALSE))
   names(data[[i]]) = c("read.name", "barcode7", "blah", "sample.barcode", "read")
 }
+names(data) = c("112A", "112B", "D19A", "D19B")
 # 
 # SANITY CHECK
 # str(data)
@@ -147,18 +148,18 @@ weblogo(seqs = aln,
 
 names(data.unq.split[1])
 
-weblogoGraph = function(x, y) {
+weblogoGraph = function(i) {
   require(RWebLogo)
-  weblogo(seqs = x$up.flank,
-          file.out = paste(library, "_up_info.pdf"),
+  weblogo(seqs = data.unq.split[[i]]$up.flank,
+          file.out = paste(i, "_up_info.pdf"),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
           annotate = 1:9)
-  weblogo(seqs = x$up.flank,
-          file.out = paste(library, "_up_prob.pdf"),
+  weblogo(seqs = data.unq.split[[i]]$up.flank,
+          file.out = paste(i, "_up_prob.pdf"),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -166,16 +167,16 @@ weblogoGraph = function(x, y) {
           sequence.type = "dna",
           color.scheme = "classic",
           annotate = 1:9)
-  weblogo(seqs = x$down.flank,
-          file.out = paste(library, "_down_info.pdf"),
+  weblogo(seqs = data.unq.split[[i]]$down.flank,
+          file.out = paste(i, "_down_info.pdf"),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
           annotate = 1:12)
-  weblogo(seqs = x$down.flank,
-          file.out = paste(library, "_down_prob.pdf"),
+  weblogo(seqs = data.unq.split[[i]]$down.flank,
+          file.out = paste(i, "_down_prob.pdf"),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -184,6 +185,8 @@ weblogoGraph = function(x, y) {
           color.scheme = "classic",
           annotate = 1:12)
 }
+lapply(names(lapply(data.unq.split, names)), weblogoGraph)
+
 names(data.unq.split[1])
 
 x <- list(a=11,b=12,c=13) # Changed to list to address concerns in commments
@@ -202,12 +205,23 @@ You can pass this result to "[[":
   > names(sapply(mylist, names))
 [1] "a" "b" "c"
 
-lapply(names(data.unq.split), function(x) {print(names(data.unq.split[[x]]))})
+lapply(names(lapply(data.unq.split, names)), function(x) {print(names(data.unq.split[[x]]))})
 
 sapply( names(sapply(data.unq.split, names)) , )
 a  b  c
 [1,] 1  9 25
 [2,] 4 16 36
+
+mylist = list("a" = data.frame(x = 1:3, y = 4:6),
+              "b" = data.frame(x = 1:3, y = 1:3),
+              "c" = data.frame(x = 1:3, y = 7:9))
+
+lapply(names(lapply(mylist, names)), plotter)
+plotter = function(i) {
+  png(file = paste(i, ".png"))
+  plot(mylist[[i]]$x, mylist[[i]]$y)
+  dev.off()
+}
 
 # 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
 
