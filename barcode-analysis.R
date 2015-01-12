@@ -42,9 +42,14 @@ uniqueReadsPerBarcode = function(x) {
 data.unq = mclapply(data, uniqueReadsPerBarcode, mc.cores = 2)
 # 
 # CHECKING THE EFFECT OF THE FILTER
-# lapply(data, dim)
-# lapply(data.unq, dim)
-# TODO - CAPTURE THE OUTPUT OF THIS IN SOME SORT OF DOCUMENT
+filter.summ = inner_join(ldply(lapply(data, nrow)),
+                         ldply(lapply(data.unq, nrow)),
+                         by = ".id")
+names(filter.summ) = c("library", "no.reads_before.filter", "no.reads_after.filter")
+write.csv(filter.summ, 
+          file = "filter-summary.csv",
+          quote = FALSE,
+          row.names = FALSE)
 # 
 # EDA OF EFFECT OF FILTERING
 # SUMMARY FUNCTION
@@ -104,7 +109,7 @@ selectSubSequence = function(x) {
            barcode5 = str_sub(barcode7, start = -5, end = -1),
            up.flank = str_c(barcode2, barcode2.flank),
            down.flank = str_c(barcode5.flank, barcode5)) %>%
-    select(read.name, read, barcode2, barcode2.flank, barcode5.flank, barcode5, up.flank, down.flank)
+    select(read.name, up.flank, down.flank)
 }
 # 
 data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 2)
@@ -115,3 +120,29 @@ data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 2)
 # SEQUENCE PREFERENCE AT THE JOINS, BUT THERE'S NO WAY TO GET AROUND THAT THIS IS A PRODUCT OF THE 
 # FREQUENCY OF THE INSERT SEQUENCE AND THE LIKLIHOOD OF LIGATION FOR EACH SEQUENCE. I'LL MAKE THE 
 # LOGO AND THEN SPEAK TO NICK...
+#
+# TWO THINGS I WANT TO ACHEIVE:
+# 1. SEQUENCE LOGO FOR INFORMATION AND PROBABITY FOR EACH LIBRARY
+
+# RWebLogo is the most straightforward way to acheive this, though you don't get as much background
+# info
+library(RWebLogo)
+aln <- c('CCAACCCAA', 'CCAACCCTA', 'AAAGCCTGA', 'TGAACCGGA')
+aln
+weblogo(seqs = aln,
+        errorbars = FALSE,
+        open = FALSE,
+        verbose = FALSE)
+# Lets get rid of those ugly error bars and add some text!
+weblogo(seqs=aln, errorbars=FALSE, title='Yay, No error bars!',
+        fineprint='RWebLogo 1.0', label='1a')
+# We can also change the format of the output like this
+weblogo(seqs=aln, format='png', resolution=500)
+# You can change the axis labels like this
+weblogo(seqs=aln, xlabel='My x-axis', ylabel='Awesome bits')
+# You get the idea! See ?weblogo for more awesome options!
+?weblogo
+
+# 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
+
+
