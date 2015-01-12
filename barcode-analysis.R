@@ -130,18 +130,84 @@ library(RWebLogo)
 aln <- c('CCAACCCAA', 'CCAACCCTA', 'AAAGCCTGA', 'TGAACCGGA')
 aln
 weblogo(seqs = aln,
+        file.out = "play.pdf",
         errorbars = FALSE,
         open = FALSE,
-        verbose = FALSE)
-# Lets get rid of those ugly error bars and add some text!
-weblogo(seqs=aln, errorbars=FALSE, title='Yay, No error bars!',
-        fineprint='RWebLogo 1.0', label='1a')
-# We can also change the format of the output like this
-weblogo(seqs=aln, format='png', resolution=500)
-# You can change the axis labels like this
-weblogo(seqs=aln, xlabel='My x-axis', ylabel='Awesome bits')
-# You get the idea! See ?weblogo for more awesome options!
-?weblogo
+        verbose = FALSE,
+        sequence.type = "dna",
+        color.scheme = "classic",
+        annotate = 1:nchar(aln[1]))
+weblogo(seqs = aln,
+        units = "probability",
+        errorbars = FALSE,
+        open = FALSE,
+        verbose = FALSE,
+        sequence.type = "dna",
+        color.scheme = "classic")
+
+names(data.unq.split[1])
+
+weblogoGraph = function(x, y) {
+  require(RWebLogo)
+  weblogo(seqs = x$up.flank,
+          file.out = paste(library, "_up_info.pdf"),
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = 1:9)
+  weblogo(seqs = x$up.flank,
+          file.out = paste(library, "_up_prob.pdf"),
+          units = "probability",
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = 1:9)
+  weblogo(seqs = x$down.flank,
+          file.out = paste(library, "_down_info.pdf"),
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = 1:12)
+  weblogo(seqs = x$down.flank,
+          file.out = paste(library, "_down_prob.pdf"),
+          units = "probability",
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = 1:12)
+}
+names(data.unq.split[1])
+
+x <- list(a=11,b=12,c=13) # Changed to list to address concerns in commments
+x
+
+lapply(seq_along(x), function(y, n, i) { paste(n[[i]], y[[i]]) }, y=x, n=names(x))
+
+mylist <- list("a"=2,"b"=4,"c"=6)
+mylist[["a"]]
+> sapply(mylist,function(x){
+  >  #get name of list elements ("a", "b", "c")
+    >  #then do other stuff
+    > })
+
+You can pass this result to "[[":
+  > names(sapply(mylist, names))
+[1] "a" "b" "c"
+
+lapply(names(data.unq.split), function(x) {print(names(data.unq.split[[x]]))})
+
+sapply( names(sapply(data.unq.split, names)) , )
+a  b  c
+[1,] 1  9 25
+[2,] 4 16 36
 
 # 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
 
