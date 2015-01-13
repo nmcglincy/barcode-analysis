@@ -31,13 +31,13 @@ library(dplyr)
 library(stringr)
 # 
 # FILTER FUNCTION - DISCARD UNWANTED COLUMNS
+# 20150113 - DON'T THINK I NEED THE ARRANGE COMMAND
 uniqueReadsPerBarcode = function(x) {
   require(dplyr)
   x %>%
     select(read.name, barcode7, read) %>%
     group_by(barcode7) %>%
-    distinct(read) %>%
-    arrange(barcode7, read)
+    distinct(read)
 }
 # 
 data.unq = mclapply(data, uniqueReadsPerBarcode, mc.cores = 36)
@@ -93,6 +93,7 @@ ggplot(filt.an.df, aes(x = lnth, colour = filter)) +
         strip.text.x = element_text(size = 14),
         strip.text.y = element_text(size = 14))
 ggsave("effect-uniqueReadsPerBarcode.png", dpi = 400)
+graphics.off()
 #
 # lapply(data.unq, head)
 # 
@@ -108,12 +109,8 @@ ggsave("effect-uniqueReadsPerBarcode.png", dpi = 400)
 selectSubSequence = function(x) {
   require(dplyr)
   x %>%
-    mutate(barcode2 = str_sub(barcode7, start = 1, end = 2),
-           barcode2.flank = str_sub(read, start = 1, end = 7),
-           barcode5.flank = str_sub(read, start = -7, end = -1),
-           barcode5 = str_sub(barcode7, start = -5, end = -1),
-           up.flank = str_c(barcode2, barcode2.flank),
-           down.flank = str_c(barcode5.flank, barcode5)) %>%
+    mutate(up.flank = str_c(str_sub(barcode7, start = 1, end = 2), str_sub(read, start = 1, end = 7)),
+           down.flank = str_c(str_sub(read, start = -7, end = -1), str_sub(barcode7, start = -5, end = -1))) %>%
     select(read.name, up.flank, down.flank)
 }
 # 
