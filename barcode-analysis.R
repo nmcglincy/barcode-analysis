@@ -3,7 +3,7 @@ library(parallel)
 # 
 files = list.files(pattern = "*liteT.txt")
 data = list()
-num.lines = 10000
+# num.lines = 10000
 # 
 # GET APPROACH RIGHT ON 10K LINES, THEN PERFORM WHOLE THING
 for (i in files) {
@@ -11,7 +11,7 @@ for (i in files) {
                      fread(input = i,
                           data.table = FALSE,
                           sep = "\t",
-                          nrows = num.lines,
+#                           nrows = num.lines,
                           header = FALSE,
                           stringsAsFactors = FALSE,
                           verbose = FALSE,
@@ -40,11 +40,11 @@ uniqueReadsPerBarcode = function(x) {
     arrange(barcode7, read)
 }
 # 
-data.unq = mclapply(data, uniqueReadsPerBarcode, mc.cores = 2)
+data.unq = mclapply(data, uniqueReadsPerBarcode, mc.cores = 36)
 # 
 # CHECKING THE EFFECT OF THE FILTER
-filter.summ = inner_join(ldply(lapply(data, nrow)),
-                         ldply(lapply(data.unq, nrow)),
+filter.summ = inner_join(ldply(mclapply(data, nrow, mc.cores = 36)),
+                         ldply(mclapply(data.unq, nrow, mc.cores = 36)),
                          by = ".id")
 names(filter.summ) = c("library", "no.reads_before.filter", "no.reads_after.filter")
 write.csv(filter.summ, 
@@ -61,11 +61,15 @@ readsPerBarcodeSumm = function(x) {
     summarise(lnth = length(read))
 }
 # 
-filt.an.df = ldply(list(pre.filter = data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 2)),
-                                         filter = rep("before", 24781)),
-                        post.filter = data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 2)),
-                                          filter = rep("after", 24781))))
+filt.an.df = ldply(list(pre.filter = data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36)),
+                                        filter = rep("before", dim(data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36))))[1])),
+                        post.filter = data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36)),
+                                        filter = rep("after", dim(data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36))))[1]))))
 # str(filt.an.df)
+# dim(pre.filter)
+# head(pre.filter)
+# table(pre.filter$.id)
+# pre.filter = dim(data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36))))[1]
 # head(filt.an.df)
 # 
 library(ggplot2)
@@ -113,7 +117,7 @@ selectSubSequence = function(x) {
     select(read.name, up.flank, down.flank)
 }
 # 
-data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 2)
+data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 36)
 # lapply(data.unq.split, head)
 # 
 # LOOKS LIKE A GOOD FORMAT
@@ -170,7 +174,7 @@ weblogoGraph = function(i) {
 }
 # 
 # FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
-mclapply(names(lapply(data.unq.split, names)), weblogoGraph, mc.cores = 2)
+mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph, mc.cores = 36)
 # 
 # 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
 # UP FLANK
@@ -182,7 +186,7 @@ upFlankWinners = function(x) {
     arrange(desc(up.flank.freq))
 }
 # 
-up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 2)
+up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
 # 
 csvWritter = function(i, y, nom) {
   # WRITES THE FIRST 100 LINES, WHICH CORRESPONDS TO THE TOP 100 OF THE SORTED DATAFRAME
@@ -191,7 +195,7 @@ csvWritter = function(i, y, nom) {
             quote = FALSE,
             row.names = FALSE)
 }
-mclapply(names(lapply(up.freq.summ, names)), csvWritter, y = up.freq.summ, nom = "upflank", mc.cores = 2)
+mclapply(names(lapply(up.freq.summ, names)), csvWritter, y = up.freq.summ, nom = "upflank", mc.cores = 36)
 # 
 # DOWN FLANK
 downFlankWinners = function(x) {
@@ -202,5 +206,5 @@ downFlankWinners = function(x) {
     arrange(desc(down.flank.freq))
 }
 # 
-down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 2)
-mclapply(names(lapply(down.freq.summ, names)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 2)
+down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 36)
+mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 36)
