@@ -124,55 +124,6 @@ data.unq.split = mclapply(data.unq, selectSubSequence, mc.cores = 36)
 # LOGO AND THEN SPEAK TO NICK...
 #
 # TWO THINGS I WANT TO ACHEIVE:
-# 1. SEQUENCE LOGO FOR INFORMATION AND PROBABITY FOR EACH LIBRARY
-
-# RWebLogo is the most straightforward way to acheive this, though you don't get as much background
-# info
-# library(RWebLogo)
-# Graphing function
-weblogoGraph = function(i) {
-  require(RWebLogo)
-  # THE UP.FLANK
-  weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_info.pdf", sep = ""),
-          errorbars = FALSE,
-          open = FALSE,
-          verbose = FALSE,
-          sequence.type = "dna",
-          color.scheme = "classic",
-          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
-  weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_prob.pdf", sep = ""),
-          units = "probability",
-          errorbars = FALSE,
-          open = FALSE,
-          verbose = FALSE,
-          sequence.type = "dna",
-          color.scheme = "classic",
-          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
-  # THE DOWN.FLANK
-  weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_info.pdf", sep = ""),
-          errorbars = FALSE,
-          open = FALSE,
-          verbose = FALSE,
-          sequence.type = "dna",
-          color.scheme = "classic",
-          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
-  weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_prob.pdf", sep = ""),
-          units = "probability",
-          errorbars = FALSE,
-          open = FALSE,
-          verbose = FALSE,
-          sequence.type = "dna",
-          color.scheme = "classic",
-          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
-}
-# 
-# FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
-mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph, mc.cores = 36)
-# 
 # 2. MOST AND LEAST POPULAR SEQUENCES FOR EACH LIBRARY
 # UP FLANK
 upFlankWinners = function(x) {
@@ -205,3 +156,64 @@ downFlankWinners = function(x) {
 # 
 down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 36)
 mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 36)
+# 
+# 1. SEQUENCE LOGO FOR INFORMATION AND PROBABITY FOR EACH LIBRARY
+
+# RWebLogo is the most straightforward way to acheive this, though you don't get as much background
+# info
+# 20150114 - this seems to be the part where it's sticking, I've move the reporting functions to prior to this; I expect that they will be
+# quicker, so I'll actually get those reports back. I also had the same intuition to split up the graphing function, so that I can see things
+# come back piece-wise.
+# Also, I wonder if require() is resulting in some sort of test each time, which would also slow things down.
+library(RWebLogo)
+# Graphing function
+weblogoGraph.upinfo = function(i) {
+  # require(RWebLogo)
+  weblogo(seqs = data.unq.split[[i]]$up.flank,
+          file.out = paste(i, "_up_info.pdf", sep = ""),
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
+}
+weblogoGraph.upprob = function(i) {
+	weblogo(seqs = data.unq.split[[i]]$up.flank,
+          file.out = paste(i, "_up_prob.pdf", sep = ""),
+          units = "probability",
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
+}
+weblogoGraph.downinfo = function(i) {
+	weblogo(seqs = data.unq.split[[i]]$down.flank,
+          file.out = paste(i, "_down_info.pdf", sep = ""),
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
+}
+weblogoGraph.downprob = function(i)  {
+	weblogo(seqs = data.unq.split[[i]]$down.flank,
+          file.out = paste(i, "_down_prob.pdf", sep = ""),
+          units = "probability",
+          errorbars = FALSE,
+          open = FALSE,
+          verbose = FALSE,
+          sequence.type = "dna",
+          color.scheme = "classic",
+          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
+}
+# 
+# FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
+mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.upinfo, mc.cores = 36)
+mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.upprob, mc.cores = 36)
+mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.downinfo, mc.cores = 36)
+mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.downprob, mc.cores = 36)
+# 
