@@ -11,7 +11,7 @@ for (i in files) {
                      fread(input = i,
                           data.table = FALSE,
                           sep = "\t",
-#                           nrows = num.lines,
+                          # nrows = num.lines,
                           header = FALSE,
                           stringsAsFactors = FALSE,
                           verbose = FALSE,
@@ -22,7 +22,6 @@ names(data) = c("112A", "112B", "D19A", "D19B")
 # 
 # SANITY CHECK
 # str(data)
-# 
 # LOOKS GOOD
 # 
 # REMOVE DUPLICATED READS FOR EACH BARCODE7
@@ -41,6 +40,7 @@ uniqueReadsPerBarcode = function(x) {
 }
 # 
 data.unq = mclapply(data, uniqueReadsPerBarcode, mc.cores = 36)
+# str(data.unq)
 # 
 # CHECKING THE EFFECT OF THE FILTER
 filter.summ = inner_join(ldply(mclapply(data, nrow, mc.cores = 36)),
@@ -66,6 +66,11 @@ filt.an.df = ldply(list(pre.filter = data.frame(ldply(mclapply(data, readsPerBar
                         post.filter = data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36)),
                                         filter = rep("after", dim(data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36))))[1]))))
 # str(filt.an.df)
+# head(filt.an.df)
+# filt.an.df %>%
+#   summarise(maxi = max(lnth))
+#   arrange(desc(lnth)) %>%
+#   slice(1:10)
 # dim(pre.filter)
 # head(pre.filter)
 # table(pre.filter$.id)
@@ -131,10 +136,13 @@ upFlankWinners = function(x) {
   x %>%
     group_by(up.flank) %>%
     summarise(up.flank.freq = length(read.name)) %>%
-    arrange(desc(up.flank.freq))
+	  arrange(desc(up.flank.freq)) %>%
+	  slice(1:10000)
 }
 # 
 up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
+str(up.freq.summ)
+lapply(up.freq.summ, head)
 # 
 csvWritter = function(i, y, nom) {
   # WRITES THE FIRST 100 LINES, WHICH CORRESPONDS TO THE TOP 100 OF THE SORTED DATAFRAME
@@ -151,26 +159,28 @@ downFlankWinners = function(x) {
   x %>%
     group_by(down.flank) %>%
     summarise(down.flank.freq = length(read.name)) %>%
-    arrange(desc(down.flank.freq))
+    arrange(desc(down.flank.freq)) %>%
+    slice(1:10000)
 }
 # 
 down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 36)
 mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 36)
 # 
 # 1. SEQUENCE LOGO FOR INFORMATION AND PROBABITY FOR EACH LIBRARY
-
+# 
 # RWebLogo is the most straightforward way to acheive this, though you don't get as much background
 # info
 # 20150114 - this seems to be the part where it's sticking, I've move the reporting functions to prior to this; I expect that they will be
 # quicker, so I'll actually get those reports back. I also had the same intuition to split up the graphing function, so that I can see things
 # come back piece-wise.
 # Also, I wonder if require() is resulting in some sort of test each time, which would also slow things down.
+# 20150115 - this didn't work any better, after discussing with Nick, do the weblogo on the top 10K or 100K
 library(RWebLogo)
 # Graphing function
 weblogoGraph.upinfo = function(i) {
   # require(RWebLogo)
-  weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_info.pdf", sep = ""),
+  weblogo(seqs = up.freq.summ[[i]]$up.flank,
+          file.out = paste(i, "_up_info10k.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -179,8 +189,8 @@ weblogoGraph.upinfo = function(i) {
           annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
 }
 weblogoGraph.upprob = function(i) {
-	weblogo(seqs = data.unq.split[[i]]$up.flank,
-          file.out = paste(i, "_up_prob.pdf", sep = ""),
+	weblogo(seqs = up.freq.summ[[i]]$up.flank,
+          file.out = paste(i, "_up_prob10k.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -191,7 +201,7 @@ weblogoGraph.upprob = function(i) {
 }
 weblogoGraph.downinfo = function(i) {
 	weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_info.pdf", sep = ""),
+          file.out = paste(i, "_down_info10k.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -201,7 +211,7 @@ weblogoGraph.downinfo = function(i) {
 }
 weblogoGraph.downprob = function(i)  {
 	weblogo(seqs = data.unq.split[[i]]$down.flank,
-          file.out = paste(i, "_down_prob.pdf", sep = ""),
+          file.out = paste(i, "_down_prob10k.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -212,8 +222,8 @@ weblogoGraph.downprob = function(i)  {
 }
 # 
 # FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
-mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.upinfo, mc.cores = 36)
-mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.upprob, mc.cores = 36)
-mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.downinfo, mc.cores = 36)
-mclapply(names(mclapply(data.unq.split, names, mc.cores = 36)), weblogoGraph.downprob, mc.cores = 36)
+mclapply(names(mclapply(up.freq.summ, names, mc.cores = 36)), weblogoGraph.upinfo, mc.cores = 36)
+mclapply(names(mclapply(up.freq.summ, names, mc.cores = 36)), weblogoGraph.upprob, mc.cores = 36)
+mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downinfo, mc.cores = 36)
+mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downprob, mc.cores = 36)
 # 
