@@ -140,9 +140,10 @@ upFlankWinners = function(x) {
 	  slice(1:10000)
 }
 # 
-up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
-str(up.freq.summ)
-lapply(up.freq.summ, head)
+# up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
+# str(up.freq.summ)
+# lapply(up.freq.summ, head)
+# up.freq.summ[[1]]$up.flank.freq
 # 
 csvWritter = function(i, y, nom) {
   # WRITES THE FIRST 100 LINES, WHICH CORRESPONDS TO THE TOP 100 OF THE SORTED DATAFRAME
