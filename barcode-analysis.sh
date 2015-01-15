@@ -44,8 +44,8 @@ grep -A 1 "@HS3:*" 112B_norrna.fq | sed '/^--/d' | awk 'BEGIN{RS="@"}{gsub("\n",
 grep -A 1 "@HS3:*" D19A_norrna.fq | sed '/^--/d' | awk 'BEGIN{RS="@"}{gsub("\n","\t",$0); print $0}' > barcode-analysis/D19A_norrna-lite.txt &
 grep -A 1 "@HS3:*" D19B_norrna.fq | sed '/^--/d' | awk 'BEGIN{RS="@"}{gsub("\n","\t",$0); print $0}' > barcode-analysis/D19B_norrna-lite.txt &
 # 
-# 
-sed '/^$/d' 112A-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > 112A-liteT.txt &
-sed '/^$/d' 112B-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > 112B-liteT.txt &
-sed '/^$/d' D19A-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > D19A-liteT.txt &
-sed '/^$/d' D19B-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > D19B-liteT.txt &
+# NEED TO MORE INTO BARCODE-ANALYSIS FIRST... 
+sed '/^$/d' 112A_norrna-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > 112A_norrna-liteT.txt &
+sed '/^$/d' 112B_norrna-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > 112B_norrna-liteT.txt &
+sed '/^$/d' D19A_norrna-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > D19A_norrna-liteT.txt &
+sed '/^$/d' D19B_norrna-lite.txt | awk 'BEGIN{FS="[ ]|\t|#";OFS="\t"}{print $1,$2,$3,$4,$5}' > D19B_norrna-liteT.txt &
