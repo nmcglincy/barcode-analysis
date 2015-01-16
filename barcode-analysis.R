@@ -61,10 +61,13 @@ readsPerBarcodeSumm = function(x) {
     summarise(lnth = length(read))
 }
 # 
-filt.an.df = ldply(list(pre.filter = data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36)),
-                                        filter = rep("before", dim(data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36))))[1])),
-                        post.filter = data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36)),
-                                        filter = rep("after", dim(data.frame(ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36))))[1]))))
+pre.filter  = ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36))
+post.filter = ldply(mclapply(data.unq, readsPerBarcodeSumm, mc.cores = 36))
+pre.filter = pre.filter %>%
+  mutate(filter = "before")
+post.filter = post.filter %>%
+  mutate(filter = "after")
+filt.an.df = ldply(list(pre.filter,post.filter))
 # str(filt.an.df)
 # head(filt.an.df)
 # filt.an.df %>%
@@ -140,10 +143,9 @@ upFlankWinners = function(x) {
 	  slice(1:10000)
 }
 # 
-# up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
+up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
 # str(up.freq.summ)
 # lapply(up.freq.summ, head)
-# up.freq.summ[[1]]$up.flank.freq
 # 
 csvWritter = function(i, y, nom) {
   # WRITES THE FIRST 100 LINES, WHICH CORRESPONDS TO THE TOP 100 OF THE SORTED DATAFRAME
@@ -228,3 +230,4 @@ mclapply(names(mclapply(up.freq.summ, names, mc.cores = 36)), weblogoGraph.uppro
 mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downinfo, mc.cores = 36)
 mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downprob, mc.cores = 36)
 # 
+
