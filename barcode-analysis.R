@@ -117,8 +117,8 @@ graphics.off()
 selectSubSequence = function(x) {
   require(dplyr)
   x %>%
-    mutate(up.flank = str_c(str_sub(barcode7, start = 1, end = 2), str_sub(read, start = 1, end = 7)),
-           down.flank = str_c(str_sub(read, start = -7, end = -1), str_sub(barcode7, start = -5, end = -1))) %>%
+    mutate(up.flank = str_c(str_sub(barcode7, start = 1, end = 2), str_sub(read, start = 1, end = 5)),
+           down.flank = str_c(str_sub(read, start = -5, end = -1), str_sub(barcode7, start = -5, end = -1))) %>%
     select(read.name, up.flank, down.flank)
 }
 # 
@@ -167,7 +167,7 @@ downFlankWinners = function(x) {
 }
 # 
 down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 36)
-mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 36)
+mclapply(names(lapply(down.freq.summ, names)), csvWritter, y = down.freq.summ, nom = "downflank", mc.cores = 36)
 # 
 # 1. SEQUENCE LOGO FOR INFORMATION AND PROBABITY FOR EACH LIBRARY
 # 
@@ -189,7 +189,7 @@ weblogoGraph.upinfo = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 5), 1:5, sep = "")))
 }
 weblogoGraph.upprob = function(i) {
 	weblogo(seqs = up.freq.summ[[i]]$up.flank,
@@ -200,20 +200,20 @@ weblogoGraph.upprob = function(i) {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 7), 1:7, sep = "")))
+          annotate = c(paste(rep("B", 2), 1:2, sep = ""), paste(rep("R", 5), 1:5, sep = "")))
 }
 weblogoGraph.downinfo = function(i) {
-	weblogo(seqs = data.unq.split[[i]]$down.flank,
+	weblogo(seqs = down.freq.summ[[i]]$down.flank,
           file.out = paste(i, "_down_info10k.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
+          annotate = c(paste(rep("R", 5), 1:5, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
 }
 weblogoGraph.downprob = function(i)  {
-	weblogo(seqs = data.unq.split[[i]]$down.flank,
+	weblogo(seqs = down.freq.summ[[i]]$down.flank,
           file.out = paste(i, "_down_prob10k.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
@@ -221,13 +221,13 @@ weblogoGraph.downprob = function(i)  {
           verbose = FALSE,
           sequence.type = "dna",
           color.scheme = "classic",
-          annotate = c(paste(rep("R", 7), 1:7, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
+          annotate = c(paste(rep("R", 5), 1:5, sep = ""), paste(rep("B", 5), 1:5, sep = "")))
 }
 # 
 # FOR EACH LIBRARY AND INFORMATION AND PROBABILITY BASED GRAPH OF BOTH THE UP AND DOWN FLANKS
-mclapply(names(mclapply(up.freq.summ, names, mc.cores = 36)), weblogoGraph.upinfo, mc.cores = 36)
-mclapply(names(mclapply(up.freq.summ, names, mc.cores = 36)), weblogoGraph.upprob, mc.cores = 36)
-mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downinfo, mc.cores = 36)
-mclapply(names(mclapply(down.freq.summ, names, mc.cores = 36)), weblogoGraph.downprob, mc.cores = 36)
+mclapply(names(lapply(up.freq.summ, names)), weblogoGraph.upinfo, mc.cores = 36)
+mclapply(names(lapply(up.freq.summ, names)), weblogoGraph.upprob, mc.cores = 36)
+mclapply(names(lapply(down.freq.summ, names)), weblogoGraph.downinfo, mc.cores = 36)
+mclapply(names(lapply(down.freq.summ, names)), weblogoGraph.downprob, mc.cores = 36)
 # 
 
