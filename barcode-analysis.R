@@ -47,6 +47,8 @@ filter.summ = inner_join(ldply(mclapply(data, nrow, mc.cores = 36)),
                          ldply(mclapply(data.unq, nrow, mc.cores = 36)),
                          by = ".id")
 names(filter.summ) = c("library", "no.reads_before.filter", "no.reads_after.filter")
+filter.summ = filter.summ %>%
+  mutate(prop.remaining = no.reads_after.filter/no.reads_before.filter)
 write.csv(filter.summ, 
           file = "filter-summary.csv",
           quote = FALSE,
@@ -68,17 +70,7 @@ pre.filter = pre.filter %>%
 post.filter = post.filter %>%
   mutate(filter = "after")
 filt.an.df = ldply(list(pre.filter,post.filter))
-# str(filt.an.df)
-# head(filt.an.df)
-# filt.an.df %>%
-#   summarise(maxi = max(lnth))
-#   arrange(desc(lnth)) %>%
-#   slice(1:10)
-# dim(pre.filter)
-# head(pre.filter)
-# table(pre.filter$.id)
-# pre.filter = dim(data.frame(ldply(mclapply(data, readsPerBarcodeSumm, mc.cores = 36))))[1]
-# head(filt.an.df)
+filt.an.df$filter = factor(filt.an.df$filter, levels = c("before", "after"))
 # 
 library(ggplot2)
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -140,7 +132,7 @@ upFlankWinners = function(x) {
     group_by(up.flank) %>%
     summarise(up.flank.freq = length(read.name)) %>%
 	  arrange(desc(up.flank.freq)) %>%
-	  slice(1:10000)
+	  slice(1:100000)
 }
 # 
 up.freq.summ = mclapply(data.unq.split, upFlankWinners, mc.cores = 36)
@@ -163,7 +155,7 @@ downFlankWinners = function(x) {
     group_by(down.flank) %>%
     summarise(down.flank.freq = length(read.name)) %>%
     arrange(desc(down.flank.freq)) %>%
-    slice(1:10000)
+    slice(1:100000)
 }
 # 
 down.freq.summ = mclapply(data.unq.split, downFlankWinners, mc.cores = 36)
@@ -183,7 +175,7 @@ library(RWebLogo)
 weblogoGraph.upinfo = function(i) {
   # require(RWebLogo)
   weblogo(seqs = up.freq.summ[[i]]$up.flank,
-          file.out = paste(i, "_up_info10k.pdf", sep = ""),
+          file.out = paste(i, "_up_info100k.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -193,7 +185,7 @@ weblogoGraph.upinfo = function(i) {
 }
 weblogoGraph.upprob = function(i) {
 	weblogo(seqs = up.freq.summ[[i]]$up.flank,
-          file.out = paste(i, "_up_prob10k.pdf", sep = ""),
+          file.out = paste(i, "_up_prob100k.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -204,7 +196,7 @@ weblogoGraph.upprob = function(i) {
 }
 weblogoGraph.downinfo = function(i) {
 	weblogo(seqs = down.freq.summ[[i]]$down.flank,
-          file.out = paste(i, "_down_info10k.pdf", sep = ""),
+          file.out = paste(i, "_down_info100k.pdf", sep = ""),
           errorbars = FALSE,
           open = FALSE,
           verbose = FALSE,
@@ -214,7 +206,7 @@ weblogoGraph.downinfo = function(i) {
 }
 weblogoGraph.downprob = function(i)  {
 	weblogo(seqs = down.freq.summ[[i]]$down.flank,
-          file.out = paste(i, "_down_prob10k.pdf", sep = ""),
+          file.out = paste(i, "_down_prob100k.pdf", sep = ""),
           units = "probability",
           errorbars = FALSE,
           open = FALSE,
@@ -230,4 +222,3 @@ mclapply(names(lapply(up.freq.summ, names)), weblogoGraph.upprob, mc.cores = 36)
 mclapply(names(lapply(down.freq.summ, names)), weblogoGraph.downinfo, mc.cores = 36)
 mclapply(names(lapply(down.freq.summ, names)), weblogoGraph.downprob, mc.cores = 36)
 # 
-
